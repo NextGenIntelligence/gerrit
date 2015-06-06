@@ -1,0 +1,48 @@
+= reindex
+
+== NAME
+reindex - Rebuild the secondary index
+
+== SYNOPSIS
+--
+'java' -jar gerrit.war 'reindex' [<OPTIONS>]
+--
+
+== DESCRIPTION
+Rebuilds the secondary index.
+
+== OPTIONS
+--threads::
+	Number of threads to use for indexing.
+
+--recheck-mergeable::
+	Recheck the mergeable flag on all open changes. For each open change,
+	look up for which commit the mergeability check was last done and if
+	this commit is different from the HEAD commit of the change's destination
+	branch, recompute the mergeability flag of the change by checking if the
+	commit of the current patch set can be merged into the destination branch.
+	Because this operation is computationally expensive, it is not enabled
+	by default.
+
+--schema-version::
+	Schema version to reindex; default is most recent version.
+
+--output::
+	Prefix for output; path for local disk index, or prefix for remote index.
+
+--verbose::
+	Output debug information for each change.
+
+--dry-run::
+	Dry run.  Don't write anything to index.
+
+== CONTEXT
+The secondary index must be enabled. See
+link:config-gerrit.html#index.type[index.type].
+
+GERRIT
+------
+Part of link:index.html[Gerrit Code Review]
+
+SEARCHBOX
+---------

@@ -1,0 +1,80 @@
+SRC = 'src/main/java/com/google/gerrit/'
+
+ANNOTATIONS = [
+  SRC + 'common/Nullable.java',
+  SRC + 'common/audit/Audit.java',
+  SRC + 'common/auth/SignInRequired.java',
+]
+
+EXCLUDES = [
+  SRC + 'common/SiteLibraryLoaderUtil.java',
+  SRC + 'common/PluginData.java',
+  SRC + 'common/FileUtil.java',
+  SRC + 'common/IoUtil.java',
+  SRC + 'common/TimeUtil.java',
+]
+
+java_library(
+  name = 'annotations',
+  srcs = ANNOTATIONS,
+  visibility = ['PUBLIC'],
+)
+
+gwt_module(
+  name = 'client',
+  srcs = glob([SRC + 'common/**/*.java'], excludes = EXCLUDES),
+  gwt_xml = SRC + 'Common.gwt.xml',
+  deps = [
+    ':annotations',
+    '//gerrit-extension-api:client',
+    '//gerrit-patch-jgit:client',
+    '//gerrit-prettify:client',
+    '//gerrit-reviewdb:client',
+    '//lib:gwtjsonrpc',
+    '//lib:gwtorm',
+    '//lib/jgit:jgit',
+  ],
+  visibility = ['PUBLIC'],
+)
+
+java_library(
+  name = 'server',
+  srcs = glob([SRC + 'common/**/*.java'], excludes = ANNOTATIONS),
+  deps = [
+    ':annotations',
+    '//gerrit-extension-api:api',
+    '//gerrit-patch-jgit:server',
+    '//gerrit-prettify:server',
+    '//gerrit-reviewdb:server',
+    '//lib:gwtjsonrpc',
+    '//lib:gwtorm',
+    '//lib:guava',
+    '//lib/jgit:jgit',
+    '//lib/joda:joda-time',
+    '//lib/log:api',
+  ],
+  visibility = ['PUBLIC'],
+)
+
+TEST = 'src/test/java/com/google/gerrit/common/'
+AUTO_VALUE_TEST_SRCS = [TEST + 'AutoValueTest.java']
+
+java_test(
+  name = 'client_tests',
+  srcs = glob(['src/test/java/**/*.java'], excludes = AUTO_VALUE_TEST_SRCS),
+  deps = [
+    ':client',
+    '//lib:guava',
+    '//lib:junit',
+  ],
+  source_under_test = [':client'],
+)
+
+java_test(
+  name = 'auto_value_tests',
+  srcs = AUTO_VALUE_TEST_SRCS,
+  deps = [
+    '//lib:truth',
+    '//lib/auto:auto-value',
+  ],
+)

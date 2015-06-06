@@ -1,0 +1,143 @@
+SRCS = 'src/main/java/com/google/gerrit/pgm/'
+RSRCS = 'src/main/resources/com/google/gerrit/pgm/'
+
+INIT_API_SRCS = glob([SRCS + 'init/api/*.java'])
+
+DEPS = [
+    '//gerrit-common:server',
+    '//gerrit-extension-api:api',
+    '//gerrit-gwtexpui:linker_server',
+    '//gerrit-gwtexpui:server',
+    '//gerrit-httpd:httpd',
+    '//gerrit-server:server',
+    '//gerrit-sshd:sshd',
+    '//gerrit-reviewdb:server',
+    '//lib:guava',
+    '//lib/guice:guice',
+    '//lib/guice:guice-assistedinject',
+    '//lib/guice:guice-servlet',
+    '//lib/jgit:jgit',
+    '//lib/log:api',
+    '//lib/log:jsonevent-layout',
+    '//lib/log:log4j'
+]
+
+java_library(
+  name = 'init-api',
+  srcs = INIT_API_SRCS,
+  deps = DEPS + ['//gerrit-common:annotations'],
+  visibility = ['PUBLIC'],
+)
+
+java_sources(
+  name = 'init-api-src',
+  srcs = INIT_API_SRCS,
+  visibility = ['PUBLIC'],
+)
+
+java_library(
+  name = 'init',
+  srcs = glob([SRCS + 'init/*.java']),
+  resources = glob([RSRCS + 'init/*']),
+  deps = DEPS + [
+    ':init-api',
+    ':util',
+    '//gerrit-common:annotations',
+    '//gerrit-lucene:lucene',
+    '//lib:args4j',
+    '//lib:gwtjsonrpc',
+    '//lib:gwtorm',
+    '//lib:h2',
+    '//lib/commons:validator',
+    '//lib/mina:sshd',
+  ],
+  provided_deps = ['//gerrit-launcher:launcher'],
+  visibility = [
+    '//gerrit-acceptance-tests/...',
+    '//gerrit-war:',
+  ],
+)
+
+java_library(
+  name = 'util',
+  srcs = glob([SRCS + 'util/*.java']),
+  deps = DEPS + [
+    '//gerrit-cache-h2:cache-h2',
+    '//gerrit-util-cli:cli',
+    '//lib:args4j',
+    '//lib:gwtorm',
+    '//lib/commons:dbcp',
+  ],
+  visibility = [
+    '//gerrit-acceptance-tests/...',
+    '//gerrit-gwtdebug:gwtdebug',
+    '//gerrit-war:',
+  ],
+)
+
+java_library(
+  name = 'http',
+  srcs = glob([SRCS + 'http/**/*.java']),
+  deps = DEPS + [
+    '//lib/jetty:jmx',
+    '//lib/jetty:server',
+    '//lib/jetty:servlet',
+  ],
+  provided_deps = [
+    '//gerrit-launcher:launcher',
+    '//lib:servlet-api-3_1',
+  ],
+  visibility = ['//gerrit-war:'],
+)
+
+java_library(
+  name = 'pgm',
+  srcs = glob([SRCS + '*.java', SRCS + 'rules/*.java']),
+  resources = glob([RSRCS + '*']),
+  deps = DEPS + [
+    ':http',
+    ':init',
+    ':init-api',
+    ':util',
+    '//gerrit-cache-h2:cache-h2',
+    '//gerrit-lucene:lucene',
+    '//gerrit-oauth:oauth',
+    '//gerrit-openid:openid',
+    '//gerrit-solr:solr',
+    '//lib:args4j',
+    '//lib:gwtorm',
+    '//lib:protobuf',
+    '//lib:servlet-api-3_1',
+    '//lib/auto:auto-value',
+    '//lib/prolog:cafeteria',
+    '//lib/prolog:compiler',
+    '//lib/prolog:runtime',
+  ],
+  provided_deps = ['//gerrit-launcher:launcher'],
+  visibility = [
+    '//:',
+    '//gerrit-acceptance-tests/...',
+    '//gerrit-gwtdebug:gwtdebug',
+    '//tools/eclipse:classpath',
+    '//Documentation:licenses.txt',
+  ],
+)
+
+java_test(
+  name = 'pgm_tests',
+  srcs = glob(['src/test/java/**/*.java']),
+  deps = [
+    ':init',
+    ':init-api',
+    ':pgm',
+    '//gerrit-common:server',
+    '//gerrit-server:server',
+    '//lib:guava',
+    '//lib:junit',
+    '//lib/easymock:easymock',
+    '//lib/guice:guice',
+    '//lib/jgit:jgit',
+    '//lib/jgit:junit',
+  ],
+  source_under_test = [':pgm'],
+)

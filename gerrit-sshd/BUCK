@@ -1,0 +1,58 @@
+SRCS = glob(['src/main/java/**/*.java'])
+
+java_library(
+  name = 'sshd',
+  srcs = SRCS,
+  deps = [
+    '//gerrit-extension-api:api',
+    '//gerrit-cache-h2:cache-h2',
+    '//gerrit-common:annotations',
+    '//gerrit-common:server',
+    '//gerrit-patch-jgit:server',
+    '//gerrit-reviewdb:server',
+    '//gerrit-server:server',
+    '//gerrit-util-cli:cli',
+    '//lib:args4j',
+    '//lib:gson',
+    '//lib:guava',
+    '//lib:gwtorm',
+    '//lib:jsch',
+    '//lib/auto:auto-value',
+    '//lib/commons:codec',
+    '//lib/commons:collections',
+    '//lib/guice:guice',
+    '//lib/guice:guice-assistedinject',
+    '//lib/guice:guice-servlet',  # SSH should not depend on servlet
+    '//lib/log:api',
+    '//lib/log:log4j',
+    '//lib/mina:core',
+    '//lib/mina:sshd',
+    '//lib/jgit:jgit',
+    '//lib/jgit:jgit-archive',
+  ],
+  provided_deps = [
+    '//lib/bouncycastle:bcprov',
+  ],
+  visibility = ['PUBLIC'],
+)
+
+java_sources(
+  name = 'sshd-src',
+  srcs = SRCS,
+  visibility = ['PUBLIC'],
+)
+
+java_test(
+  name = 'sshd_tests',
+  srcs = glob(
+    ['src/test/java/**/*.java'],
+  ),
+  deps = [
+    ':sshd',
+    '//gerrit-extension-api:api',
+    '//gerrit-server:server',
+    '//lib:truth',
+    '//lib/mina:sshd',
+  ],
+  source_under_test = [':sshd'],
+)

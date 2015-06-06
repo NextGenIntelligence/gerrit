@@ -1,0 +1,83 @@
+CM_CSS = [
+  'lib/codemirror.css',
+  'addon/dialog/dialog.css',
+  'addon/scroll/simplescrollbars.css',
+  'addon/search/matchesonscrollbar.css',
+]
+
+CM_JS = [
+  'lib/codemirror.js',
+  'mode/meta.js',
+  'keymap/vim.js',
+]
+
+CM_ADDONS = [
+  'dialog/dialog.js',
+  'edit/trailingspace.js',
+  'scroll/annotatescrollbar.js',
+  'scroll/simplescrollbars.js',
+  'search/matchesonscrollbar.js',
+  'search/searchcursor.js',
+  'search/search.js',
+  'selection/mark-selection.js',
+  'mode/overlay.js',
+  'mode/simple.js',
+]
+
+# Available themes must be enumerated here,
+# in gerrit-extension-api/src/main/java/com/google/gerrit/extensions/common/Theme.java,
+# in gerrit-gwtui/src/main/java/net/codemirror/theme/Themes.java
+CM_THEMES = [
+  'eclipse',
+  'elegant',
+  'midnight',
+  'neat',
+  'night',
+  'twilight',
+]
+
+# Available modes must be enumerated here,
+# in gerrit-gwtui/src/main/java/net/codemirror/mode/Modes.java,
+# and in CodeMirror's own mode/meta.js script.
+CM_MODES = [
+  'clike',
+  'clojure',
+  'coffeescript',
+  'commonlisp',
+  'css',
+  'd',
+  'dart',
+  'diff',
+  'dockerfile',
+  'dtd',
+  'erlang',
+  'gas',
+  'gfm',
+  'go',
+  'groovy',
+  'haskell',
+  'htmlmixed',
+  'javascript',
+  'lua',
+  'markdown',
+  'perl',
+  'php',
+  'pig',
+  'properties',
+  'puppet',
+  'python',
+  'r',
+  'rst',
+  'ruby',
+  'scheme',
+  'shell',
+  'smalltalk',
+  'soy',
+  'sql',
+  'stex',
+  'tcl',
+  'velocity',
+  'verilog',
+  'xml',
+  'yaml',
+]

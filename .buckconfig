@@ -1,0 +1,29 @@
+[alias]
+  all = //:all
+  api = //:api
+  api_deploy = //tools/maven:api_deploy
+  api_install = //tools/maven:api_install
+  war_deploy = //tools/maven:war_deploy
+  war_install = //tools/maven:war_install
+  chrome = //:chrome
+  docs = //Documentation:searchfree
+  firefox = //:firefox
+  gerrit = //:gerrit
+  headless = //:headless
+  release = //:release
+  safari = //:safari
+  soyc = //gerrit-gwtui:ui_soyc
+  withdocs = //:withdocs
+
+[buildfile]
+  includes = //tools/default.defs
+
+[java]
+  src_roots = java, resources
+
+[project]
+  ignore = .git
+
+[cache]
+  mode = dir
+  dir = ~/.gerritcodereview/buck-cache/cache

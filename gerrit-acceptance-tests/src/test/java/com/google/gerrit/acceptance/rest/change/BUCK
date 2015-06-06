@@ -1,0 +1,34 @@
+include_defs('//gerrit-acceptance-tests/tests.defs')
+
+SUBMIT_UTIL_SRCS = [
+  'AbstractSubmit.java',
+  'AbstractSubmitByMerge.java',
+]
+
+SUBMIT_TESTS = glob(['Submit*IT.java'], excludes = SUBMIT_UTIL_SRCS)
+OTHER_TESTS = glob(['*IT.java'], excludes = SUBMIT_TESTS + SUBMIT_UTIL_SRCS)
+
+acceptance_tests(
+  srcs = OTHER_TESTS,
+  deps = [
+    ':submit_util',
+    '//lib/joda:joda-time',
+  ],
+  labels = ['rest'],
+)
+
+acceptance_tests(
+  srcs = SUBMIT_TESTS,
+  deps = [
+    ':submit_util',
+  ],
+  labels = ['rest'],
+)
+
+java_library(
+  name = 'submit_util',
+  srcs = SUBMIT_UTIL_SRCS,
+  deps = [
+    '//gerrit-acceptance-tests:lib',
+  ],
+)

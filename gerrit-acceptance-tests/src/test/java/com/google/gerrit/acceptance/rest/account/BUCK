@@ -1,0 +1,22 @@
+include_defs('//gerrit-acceptance-tests/tests.defs')
+
+acceptance_tests(
+  srcs = glob(['*IT.java']),
+  deps = [':util'],
+  labels = ['rest']
+)
+
+java_library(
+  name = 'util',
+  srcs = [
+    'AccountAssert.java',
+    'CapabilityInfo.java',
+  ],
+  deps = [
+    '//gerrit-acceptance-tests:lib',
+    '//gerrit-reviewdb:server',
+    '//lib:gwtorm',
+    '//lib:junit',
+  ],
+  visibility = ['//gerrit-acceptance-tests/...'],
+)

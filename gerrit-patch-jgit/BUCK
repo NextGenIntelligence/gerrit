@@ -1,0 +1,44 @@
+SRC = 'src/main/java/org/eclipse/jgit/'
+
+gwt_module(
+  name = 'client',
+  srcs = [
+    SRC + 'diff/Edit_JsonSerializer.java',
+    SRC + 'diff/ReplaceEdit.java',
+  ],
+  gwt_xml = SRC + 'JGit.gwt.xml',
+  deps = [
+    '//lib:gwtjsonrpc',
+    '//lib/gwt:user',
+    '//lib/jgit:jgit',
+    '//lib/jgit:Edit',
+  ],
+  visibility = ['PUBLIC'],
+)
+
+java_library(
+  name = 'server',
+  srcs = [
+    SRC + 'diff/EditDeserializer.java',
+    SRC + 'diff/ReplaceEdit.java',
+    SRC + 'internal/storage/file/WindowCacheStatAccessor.java',
+    SRC + 'lib/ObjectIdSerialization.java',
+  ],
+  deps = [
+    '//lib:gson',
+    '//lib/jgit:jgit',
+  ],
+  visibility = ['PUBLIC'],
+)
+
+java_test(
+  name = 'jgit_patch_tests',
+  srcs = glob(['src/test/java/**/*.java']),
+  deps = [
+    ':server',
+    '//lib/jgit:jgit',
+    '//lib:junit',
+  ],
+  source_under_test = [':server'],
+  visibility = ['//tools/eclipse:classpath'],
+)

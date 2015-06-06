@@ -1,0 +1,34 @@
+include_defs('//VERSION')
+include_defs('//tools/maven/package.defs')
+
+URL = 'https://oss.sonatype.org/content/repositories/snapshots' \
+      if GERRIT_VERSION.endswith('-SNAPSHOT') else \
+        'https://oss.sonatype.org/service/local/staging/deploy/maven2'
+
+maven_package(
+  repository = 'sonatype-nexus-staging',
+  url = URL,
+  version = GERRIT_VERSION,
+  jar = {
+    'gerrit-extension-api': '//gerrit-extension-api:extension-api',
+    'gerrit-plugin-api': '//gerrit-plugin-api:plugin-api',
+    'gerrit-plugin-gwtui': '//gerrit-plugin-gwtui:gwtui-api',
+  },
+  src = {
+    'gerrit-extension-api': '//gerrit-extension-api:extension-api-src',
+    'gerrit-plugin-api': '//gerrit-plugin-api:plugin-api-src',
+    'gerrit-plugin-gwtui': '//gerrit-plugin-gwtui:gwtui-api-src',
+  },
+  doc = {
+    'gerrit-extension-api': '//gerrit-extension-api:extension-api-javadoc',
+    'gerrit-plugin-api': '//gerrit-plugin-api:plugin-api-javadoc',
+    'gerrit-plugin-gwtui': '//gerrit-plugin-gwtui:gwtui-api-javadoc',
+  },
+  war = {'gerrit-war': '//:release'},
+)
+
+python_binary(
+  name = 'mvn',
+  main = 'mvn.py',
+  deps = ['//tools:util'],
+)

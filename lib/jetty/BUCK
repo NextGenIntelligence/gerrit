@@ -1,0 +1,95 @@
+include_defs('//lib/maven.defs')
+
+VERSION = '9.2.10.v20150310'
+EXCLUDE = ['about.html']
+
+maven_jar(
+  name = 'servlet',
+  id = 'org.eclipse.jetty:jetty-servlet:' + VERSION,
+  sha1 = '9e923adf1671af7da09dba778e132ab0a9c62415',
+  license = 'Apache2.0',
+  deps = [':security'],
+  exclude = EXCLUDE,
+)
+
+maven_jar(
+  name = 'security',
+  id = 'org.eclipse.jetty:jetty-security:' + VERSION,
+  sha1 = 'b56228088355023117ba9a9de0da00d652a7e655',
+  license = 'Apache2.0',
+  deps = [':server'],
+  exclude = EXCLUDE,
+  visibility = [],
+)
+
+maven_jar(
+  name = 'servlets',
+  id = 'org.eclipse.jetty:jetty-servlets:' + VERSION,
+  sha1 = 'b48a9bb30e9d5e73dcedf8039f96abdb04a3892c',
+  license = 'Apache2.0',
+  exclude = EXCLUDE,
+  visibility = [
+    '//tools/eclipse:classpath',
+    '//gerrit-gwtdebug:gwtdebug',
+  ],
+)
+
+maven_jar(
+  name = 'server',
+  id = 'org.eclipse.jetty:jetty-server:' + VERSION,
+  sha1 = '0e6b8bff28b3e9ca6254415d2aa49603a5887fe8',
+  license = 'Apache2.0',
+  exported_deps = [
+    ':continuation',
+    ':http',
+  ],
+  exclude = EXCLUDE,
+)
+
+maven_jar(
+  name = 'jmx',
+  id = 'org.eclipse.jetty:jetty-jmx:' + VERSION,
+  sha1 = 'fa94eb39f1dd63c40efe44471664f8f70bc7ca2e',
+  license = 'Apache2.0',
+  exported_deps = [
+    ':continuation',
+    ':http',
+  ],
+  exclude = EXCLUDE,
+)
+
+maven_jar(
+  name = 'continuation',
+  id = 'org.eclipse.jetty:jetty-continuation:' + VERSION,
+  sha1 = '1c9bc80037e9898974ada7318f11c984363d4707',
+  license = 'Apache2.0',
+  exclude = EXCLUDE,
+)
+
+maven_jar(
+  name = 'http',
+  id = 'org.eclipse.jetty:jetty-http:' + VERSION,
+  sha1 = '886b628f62cd518bbb04b37bd1b308fa19340a53',
+  license = 'Apache2.0',
+  exported_deps = [':io'],
+  exclude = EXCLUDE,
+)
+
+maven_jar(
+  name = 'io',
+  id = 'org.eclipse.jetty:jetty-io:' + VERSION,
+  sha1 = '29bc6a5e2049d9858bfa811f2728a7a8efcdc1c0',
+  license = 'Apache2.0',
+  exported_deps = [':util'],
+  exclude = EXCLUDE,
+  visibility = [],
+)
+
+maven_jar(
+  name = 'util',
+  id = 'org.eclipse.jetty:jetty-util:' + VERSION,
+  sha1 = '90cc75668dc9a9885108733d4d46420907cf863c',
+  license = 'Apache2.0',
+  exclude = EXCLUDE,
+  visibility = [],
+)

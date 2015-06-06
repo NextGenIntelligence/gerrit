@@ -1,0 +1,42 @@
+QUERY_BUILDER = [
+  'src/main/java/com/google/gerrit/lucene/QueryBuilder.java',
+]
+
+java_library(
+  name = 'query_builder',
+  srcs = QUERY_BUILDER,
+  deps = [
+    '//gerrit-antlr:query_exception',
+    '//gerrit-reviewdb:server',
+    '//gerrit-server:server',
+    '//lib:gwtorm',
+    '//lib:guava',
+    '//lib/lucene:core',
+  ],
+  visibility = ['PUBLIC'],
+)
+
+java_library(
+  name = 'lucene',
+  srcs = glob(['src/main/java/**/*.java'], excludes = QUERY_BUILDER),
+  deps = [
+    ':query_builder',
+    '//gerrit-antlr:query_exception',
+    '//gerrit-common:annotations',
+    '//gerrit-common:server',
+    '//gerrit-extension-api:api',
+    '//gerrit-reviewdb:server',
+    '//gerrit-server:server',
+    '//lib:guava',
+    '//lib:gwtorm',
+    '//lib/guice:guice',
+    '//lib/guice:guice-assistedinject',
+    '//lib/jgit:jgit',
+    '//lib/log:api',
+    '//lib/lucene:analyzers-common',
+    '//lib/lucene:backward-codecs',
+    '//lib/lucene:core',
+    '//lib/lucene:misc',
+  ],
+  visibility = ['PUBLIC'],
+)

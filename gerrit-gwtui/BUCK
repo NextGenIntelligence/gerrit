@@ -1,0 +1,134 @@
+include_defs('//gerrit-gwtui/gwt.defs')
+include_defs('//tools/gwt-constants.defs')
+from multiprocessing import cpu_count
+
+CPU_COUNT = cpu_count()
+DEPS = GWT_COMMON_DEPS + [
+  '//gerrit-gwtexpui:CSS',
+  '//lib:gwtjsonrpc',
+]
+
+genrule(
+  name = 'ui_optdbg',
+  cmd = 'cd $TMP;' +
+    'unzip -q $(location :ui_dbg);' +
+    'mv' +
+    ' gerrit_ui/gerrit_ui.nocache.js' +
+    ' gerrit_ui/dbg_gerrit_ui.nocache.js;' +
+    'unzip -qo $(location :ui_opt);' +
+    'mkdir -p \$(dirname $OUT);' +
+    'zip -qr $OUT .',
+  deps = [
+    ':ui_dbg',
+    ':ui_opt',
+  ],
+  out = 'ui_optdbg.zip',
+  visibility = ['PUBLIC'],
+)
+
+gwt_binary(
+  name = 'ui_opt',
+  modules = [MODULE],
+  module_deps = [':ui_module'],
+  deps = DEPS + ([':ui_dbg'] if CPU_COUNT < 8 else []),
+  local_workers = CPU_COUNT,
+  strict = True,
+  experimental_args = GWT_COMPILER_ARGS,
+  vm_args = GWT_JVM_ARGS,
+)
+
+gwt_binary(
+  name = 'ui_soyc',
+  modules = [MODULE],
+  module_deps = [':ui_module'],
+  deps = DEPS + [':ui_dbg'],
+  local_workers = CPU_COUNT,
+  strict = True,
+  experimental_args = GWT_COMPILER_ARGS + ['-compileReport'],
+  vm_args = GWT_JVM_ARGS,
+)
+
+gwt_binary(
+  name = 'ui_dbg',
+  modules = [MODULE],
+  style = 'PRETTY',
+  optimize = 0,
+  module_deps = [':ui_module'],
+  deps = DEPS,
+  local_workers = CPU_COUNT,
+  strict = True,
+  experimental_args = GWT_COMPILER_ARGS,
+  vm_args = GWT_JVM_ARGS,
+  visibility = ['//:eclipse'],
+)
+
+gwt_user_agent_permutations(
+  name = 'ui',
+  module_name = 'gerrit_ui',
+  modules = [MODULE],
+  module_deps = [':ui_module'],
+  deps = DEPS,
+  visibility = ['//:'],
+)
+
+gwt_module(
+  name = 'ui_module',
+  srcs = glob(['src/main/java/**/*.java']),
+  gwt_xml = 'src/main/java/%s.gwt.xml' % MODULE.replace('.', '/'),
+  resources = glob(['src/main/java/**/*']),
+  deps = [
+    ':freebie_application_icon_set',
+    '//gerrit-gwtui-common:diffy_logo',
+    '//gerrit-gwtexpui:Clippy',
+    '//gerrit-gwtexpui:GlobalKey',
+    '//gerrit-gwtexpui:Progress',
+    '//gerrit-gwtexpui:SafeHtml',
+    '//gerrit-gwtexpui:UserAgent',
+    '//gerrit-gwtui-common:client',
+    '//gerrit-common:client',
+    '//gerrit-extension-api:client',
+    '//gerrit-patch-jgit:client',
+    '//gerrit-prettify:client',
+    '//gerrit-reviewdb:client',
+    '//gerrit-gwtexpui:CSS',
+    '//lib:gwtjsonrpc',
+    '//lib:gwtjsonrpc_src',
+    '//lib:gwtorm',
+    '//lib/codemirror:codemirror',
+    '//lib/gwt:user',
+    '//lib/jgit:jgit',
+  ],
+  visibility = [
+    '//tools/eclipse:classpath',
+    '//Documentation:licenses.txt',
+  ],
+)
+
+java_library(
+  name = 'freebie_application_icon_set',
+  deps = [
+    '//lib:LICENSE-freebie_application_icon_set',
+    '//lib:LICENSE-CC-BY3.0',
+  ],
+)
+
+java_test(
+  name = 'ui_tests',
+  srcs = glob(['src/test/java/**/*.java']),
+  resources = glob(['src/test/resources/**/*']) + [
+    'src/main/java/com/google/gerrit/GerritGwtUI.gwt.xml',
+  ],
+  deps = [
+    ':ui_module',
+    '//gerrit-common:client',
+    '//gerrit-extension-api:client',
+    '//lib:junit',
+    '//lib/gwt:dev',
+    '//lib/gwt:user',
+    '//lib/gwt:gwt-test-utils',
+    '//lib/jgit:jgit',
+  ],
+  source_under_test = [':ui_module'],
+  vm_args = ['-Xmx512m'],
+  visibility = ['//tools/eclipse:classpath'],
+)

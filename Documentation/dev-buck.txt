@@ -1,0 +1,676 @@
+= Gerrit Code Review - Building with Buck
+
+
+== Installation
+
+Note that you need to use Java 7 for building gerrit.
+
+There is currently no binary distribution of Buck, so it has to be manually
+built and installed.  Apache Ant is required.  Currently only Linux and Mac
+OS are supported.
+
+Clone the git and build it:
+
+----
+  git clone https://github.com/facebook/buck
+  cd buck
+  git checkout $(cat ../gerrit/.buckversion)
+  ant
+----
+
+If you don't have a `bin/` directory in your home directory, create one:
+
+----
+  mkdir ~/bin
+----
+
+Add the `~/bin` folder to the path:
+
+----
+  PATH=~/bin:$PATH
+----
+
+Note that the buck executable needs to be available in all shell sessions,
+so also make sure it is appended to the path globally.
+
+Add a symbolic link in `~/bin` to the buck and buckd executables:
+
+----
+  ln -s `pwd`/bin/buck ~/bin/
+  ln -s `pwd`/bin/buckd ~/bin/
+----
+
+Verify that `buck` is accessible:
+
+----
+  which buck
+----
+
+To enable autocompletion of buck commands, install the autocompletion
+script from `./scripts/buck_completion.bash` in the buck project.  Refer
+to the script's header comments for installation instructions.
+
+== Prerequisites
+
+Buck requires Python version 2.7 to be installed. The Maven download toolchain
+requires `curl` to be installed.
+
+[[eclipse]]
+== Eclipse Integration
+
+
+=== Generating the Eclipse Project
+
+Create the Eclipse project:
+
+----
+  tools/eclipse/project.py
+----
+
+In Eclipse, choose 'Import existing project' and select the `gerrit` project
+from the current working directory.
+
+Expand the `gerrit` project, right-click on the `buck-out` folder, select
+'Properties', and then under 'Attributes' check 'Derived'.
+
+Note that if you make any changes in the project configuration
+that get saved to the `.project` file, for example adding Resource
+Filters on a folder, they will be overwritten the next time you run
+`tools/eclipse/project.py`.
+
+
+=== Refreshing the Classpath
+
+If an updated classpath is needed, the Eclipse project can be
+refreshed and missing dependency JARs can be downloaded:
+
+----
+  tools/eclipse/project.py
+----
+
+
+=== Attaching Sources
+
+To save time and bandwidth source JARs are only downloaded by the buck
+build where necessary to compile Java source into JavaScript using the
+GWT compiler.  Additional sources may be obtained, allowing Eclipse to
+show documentation or dive into the implementation of a library JAR:
+
+----
+  tools/eclipse/project.py --src
+----
+
+
+[[build]]
+== Building on the Command Line
+
+
+=== Gerrit Development WAR File
+
+To build the Gerrit web application:
+
+----
+  buck build gerrit
+----
+
+The output executable WAR will be placed in:
+
+----
+  buck-out/gen/gerrit.war
+----
+
+
+=== Headless Mode
+
+To build Gerrit in headless mode, i.e. without the GWT Web UI:
+
+----
+  buck build headless
+----
+
+The output executable WAR will be placed in:
+
+----
+  buck-out/gen/headless.war
+----
+
+=== Extension and Plugin API JAR Files
+
+To build the extension, plugin and GWT API JAR files:
+
+----
+  buck build api
+----
+
+Java binaries, Java sources and Java docs are generated into corresponding
+project directories in `buck-out/gen`, here as example for plugin API:
+
+----
+  buck-out/gen/gerrit-plugin-api/plugin-api.jar
+  buck-out/gen/gerrit-plugin-api/plugin-api-src.jar
+  buck-out/gen/gerrit-plugin-api/plugin-api-javadoc.jar
+----
+
+Install {extension,plugin,gwt}-api to the local maven repository:
+
+----
+  buck build api_install
+----
+
+Install gerrit.war to the local maven repository:
+
+----
+  buck build war_install
+----
+
+=== Plugins
+
+To build all core plugins:
+
+----
+  buck build plugins:core
+----
+
+The output JAR files for individual plugins will be placed in:
+
+----
+  buck-out/gen/plugins/<name>/<name>.jar
+----
+
+The JAR files will also be packaged in:
+
+----
+  buck-out/gen/plugins/core.zip
+----
+
+To build a specific plugin:
+
+----
+  buck build plugins/<name>:<name>
+----
+
+The output JAR file will be be placed in:
+
+----
+  buck-out/gen/plugins/<name>/<name>.jar
+----
+
+Note that when building an individual plugin, the `core.zip` package
+is not regenerated.
+
+Additional plugins with BUCK files can be added to the build
+environment by cloning the source repository into the plugins
+subdirectory:
+
+----
+  git clone https://gerrit.googlesource.com/plugins/<name> plugins/<name>
+  echo /plugins/<name> >>.git/info/exclude
+----
+
+Additional plugin sources will be automatically added to Eclipse the
+next time project.py is run:
+
+----
+  tools/eclipse/project.py
+----
+
+
+[[documentation]]
+=== Documentation
+
+To build only the documentation for testing or static hosting:
+
+----
+  buck build docs
+----
+
+The generated html files will NOT come with the search box, and will be
+placed in:
+
+----
+  buck-out/gen/Documentation/searchfree__tmp/Documentation
+----
+
+The html files will also be bundled into `searchfree.zip` in this location:
+
+----
+  buck-out/gen/Documentation/searchfree.zip
+----
+
+To build the executable WAR with the documentation included:
+
+----
+  buck build withdocs
+----
+
+The WAR file will be placed in:
+
+----
+  buck-out/gen/withdocs.war
+----
+
+[[soyc]]
+=== GWT Compile Report
+
+The GWT compiler can output a compile report (or "story of your compile"),
+describing the size of the JavaScript and which source classes contributed
+to the overall download size.
+
+----
+  buck build soyc
+----
+
+The report will be written as an HTML page to the extras directory, and
+can be opened and viewed in any web browser:
+
+----
+  extras/gerrit_ui/soycReport/compile-report/index.html
+----
+
+Only the "Split Point Report" is created, "Compiler Metrics" are not output.
+
+[[release]]
+=== Gerrit Release WAR File
+
+To build the release of the Gerrit web application, including documentation and
+all core plugins:
+
+----
+  buck build release
+----
+
+The output release WAR will be placed in:
+
+----
+  buck-out/gen/release.war
+----
+
+[[all]]
+=== Combined build target
+
+To build release and api targets, a combined build target is provided:
+
+----
+  buck build all
+----
+
+[[tests]]
+== Running Unit Tests
+
+To run all tests including acceptance tests:
+
+----
+  buck test
+----
+
+To exclude slow tests:
+
+----
+  buck test --all --exclude slow
+----
+
+To include a specific group of acceptance tests:
+
+----
+  buck test --all --include api
+----
+
+The following groups of tests are currently supported:
+
+* api
+* edit
+* git
+* pgm
+* rest
+* server
+* ssh
+
+To run a specific test, e.g. the acceptance test
+`com.google.gerrit.acceptance.git.HttpPushForReviewIT`:
+
+----
+  buck test //gerrit-acceptance-tests/src/test/java/com/google/gerrit/acceptance/git:HttpPushForReviewIT
+----
+
+To create test coverage report:
+
+----
+  buck test --code-coverage --code-coverage-format html --no-results-cache
+----
+
+The HTML report is created in `buck-out/gen/jacoco/code-coverage/index.html`.
+
+== Dependencies
+
+Dependency JARs are normally downloaded automatically, but Buck can inspect
+its graph and download any missing JAR files.  This is useful to enable
+subsequent builds to run without network access:
+
+----
+  tools/download_all.py
+----
+
+When downloading from behind a proxy (which is common in some corporate
+environments), it might be necessary to explicitly specify the proxy that
+is then used by `curl`:
+
+----
+  export http_proxy=http://<proxy_user_id>:<proxy_password>@<proxy_server>:<proxy_port>
+----
+
+Redirection to local mirrors of Maven Central and the Gerrit storage
+bucket is supported by defining specific properties in
+`local.properties`, a file that is not tracked by Git:
+
+----
+  echo download.GERRIT = http://nexus.my-company.com/ >>local.properties
+  echo download.MAVEN_CENTRAL = http://nexus.my-company.com/ >>local.properties
+----
+
+The `local.properties` file may be placed in the root of the gerrit repository
+being built, or in `~/.gerritcodereview/`.  The file in the root of the gerrit
+repository has precedence.
+
+== Building against unpublished Maven JARs
+
+To build against unpublished Maven JARs, like gwtorm or PrologCafe, the custom
+JARs must be installed in the local Maven repository (`mvn clean install`) and
+`maven_jar()` must be updated to point to the `MAVEN_LOCAL` Maven repository for
+that artifact:
+
+[source,python]
+----
+ maven_jar(
+   name = 'gwtorm',
+   id = 'gwtorm:gwtorm:42',
+   license = 'Apache2.0',
+   repository = MAVEN_LOCAL,
+ )
+----
+
+== Building against unpublished JARs, that change frequently
+
+If a dependent Gerrit library is undergoing active development it must be
+recompiled and the change must be reflected in the Buck build process. For
+example testing Gerrit against changed JGit snapshot version. After building
+JGit library, the artifacts are created in local Maven build directory, e. g.:
+
+----
+  mvn package
+  /home/<user>/projects/jgit/org.eclipse.jgit/target/org.eclipse.jgit-3.3.0-SNAPSHOT.jar
+  /home/<user>/projects/jgit/org.eclipse.jgit/target/org.eclipse.jgit-3.3.0-SNAPSHOT-sources.jar
+----
+
+If as usual, installation of the build artifacts takes place in local maven
+repository, then the Buck build must fetch them from there with normal
+`download_file.py` process. Disadvantage of this approach is that Buck cache
+invalidation must occur to refresh the artifacts after next
+change-compile-install round trip.
+
+To shorten that workflow and take the installation of the artifacts to the
+local Maven repository and fetching it again from there out of the picture,
+`local_jar()` method is used instead of `maven_jar()`:
+
+[source,python]
+----
+ local_jar(
+   name = 'jgit',
+   jar = '/home/<user>/projects/jgit/org.eclipse.jgit/target/org.eclipse.jgit-3.3.0-SNAPSHOT.jar',
+   src = '/home/<user>/projects/jgit/org.eclipse.jgit/target/org.eclipse.jgit-3.3.0-SNAPSHOT-sources.jar',
+   deps = [':ewah']
+ )
+----
+
+This creates a symlink to the Buck targets direct against artifacts in
+another project's Maven target directory:
+
+----
+  buck-out/gen/lib/jgit/jgit.jar ->
+  /home/<user>/projects/jgit/org.eclipse.jgit/target/org.eclipse.jgit-3.3.0-SNAPSHOT.jar
+----
+
+After `buck clean` and `buck build lib/jgit:jgit` the symbolic link that was
+created the first time is lost due to Buck's caching mechanism. This means that
+when a new version of the local artifact is deployed (by running `mvn package`
+in the JGit project in the example above), Buck is not aware of it, because it
+still has a stale version of it in its cache.
+
+To solve this problem and re-create the symbolic link, you don't need to wipe out
+the entire Buck cache. Just rebuilding the target with the `--no-cache` option
+does the job:
+
+----
+  buck clean
+  buck build --no-cache lib/jgit:jgit
+----
+
+== Building against artifacts from custom Maven repositories
+
+To build against custom Maven repositories, two modes of operations are
+supported: with rewrite in local.properties and without.
+
+Without rewrite the URL of custom Maven repository can be directly passed
+to the maven_jar() function:
+
+[source,python]
+----
+  GERRIT_FORGE = 'http://gerritforge.com/snapshot'
+
+  maven_jar(
+    name = 'gitblit',
+    id = 'com.gitblit:gitblit:1.4.0',
+    sha1 = '1b130dbf5578ace37507430a4a523f6594bf34fa',
+    license = 'Apache2.0',
+    repository = GERRIT_FORGE,
+ )
+----
+
+When the custom URL has to be rewritten, then the same logic as with Gerrit
+known Maven repository is used: Repo name must be defined that matches an entry
+in local.properties file:
+
+----
+  download.GERRIT_FORGE = http://my.company.mirror/gerrit-forge
+----
+
+And corresponding BUCK excerpt:
+
+[source,python]
+----
+  GERRIT_FORGE = 'GERRIT_FORGE:'
+
+  maven_jar(
+    name = 'gitblit',
+    id = 'com.gitblit:gitblit:1.4.0',
+    sha1 = '1b130dbf5578ace37507430a4a523f6594bf34fa',
+    license = 'Apache2.0',
+    repository = GERRIT_FORGE,
+ )
+----
+
+=== Caching Build Results
+
+Build results can be locally cached, saving rebuild time when
+switching between Git branches. Buck's documentation covers
+caching in link:http://facebook.github.io/buck/concept/buckconfig.html[buckconfig].
+The trivial case using a local directory is:
+
+----
+  cat >.buckconfig.local <<EOF
+  [cache]
+    mode = dir
+    dir = buck-cache
+  EOF
+----
+
+[[clean-cache]]
+=== Cleaning The Buck Cache
+
+The cache for the Gerrit Code Review project is located in
+`~/.gerritcodereview/buck-cache/cache`.
+
+The Buck cache should never need to be manually deleted. If you find yourself
+deleting the Buck cache regularly, then it is likely that there is something
+wrong with your environment or your workflow.
+
+If you really do need to clean the cache manually, then:
+
+----
+ rm -rf ~/.gerritcodereview/buck-cache/cache
+----
+
+Note that the root `buck-cache` folder should not be deleted as this is where
+downloaded artifacts are stored.
+
+[[buck-daemon]]
+=== Using Buck daemon
+
+Buck ships with a daemon command `buckd`, which uses the
+link:https://github.com/martylamb/nailgun[Nailgun] protocol for running
+Java programs from the command line without incurring the JVM startup
+overhead.
+
+Using a Buck daemon can save significant amounts of time as it avoids the
+overhead of starting a Java virtual machine, loading the buck class files
+and parsing the build files for each command.
+
+It is safe to run several buck daemons started from different project
+directories and they will not interfere with each other. Buck's documentation
+covers daemon in http://facebook.github.io/buck/command/buckd.html[buckd].
+
+To use `buckd` the additional
+link:https://facebook.github.io/watchman[watchman] program must be installed.
+
+To disable `buckd`, the environment variable `NO_BUCKD` must be set. It's not
+recommended to put it in the shell config, as it can be forgotten about it and
+then assumed Buck was working as it should when it should be using buckd.
+Prepend the variable to Buck invocation instead:
+
+----
+  NO_BUCKD=1 buck build gerrit
+----
+
+[[watchman]]
+=== Installing watchman
+
+Watchman is used internally by Buck to monitor directory trees and is needed
+for buck daemon to work properly. Because buckd is activated by default in the
+latest version of Buck, it searches for the watchman executable in the
+path and issues a warning when it is not found and kills buckd.
+
+To prepare watchman installation on Linux:
+
+----
+  git clone https://github.com/facebook/watchman.git
+  cd watchman
+  ./autogen.sh
+----
+
+To install it in user home directory (without root privileges):
+
+----
+  ./configure --prefix $HOME/watchman
+  make install
+----
+
+To install it system wide:
+
+----
+  ./configure
+  make
+  sudo make install
+----
+
+Put $HOME/watchman/bin/watchman in path or link to $HOME/bin/watchman.
+
+To install watchman on OS X:
+
+----
+  brew install --HEAD watchman
+----
+
+See the original documentation for more information:
+link:https://facebook.github.io/watchman/docs/install.html[Watchman
+installation].
+
+=== Override Buck's settings
+
+Additional JVM args for Buck can be set in `.buckjavaargs` in the
+project root directory. For example to override Buck's default 1GB
+heap size:
+
+----
+  cat > .buckjavaargs <<EOF
+  -XX:MaxPermSize=512m -Xms8000m -Xmx16000m
+  EOF
+----
+
+== Rerun unit tests
+
+Test execution results are cached by Buck. If a test that was already run
+needs to be repeated, the unit test cache for that test must be removed first:
+
+----
+  rm -rf buck-out/bin/gerrit-acceptance-tests/src/test/java/com/google/gerrit/acceptance/api/group/.AddRemoveGroupMembersIT/
+----
+
+After clearing the cache, the test can be run again:
+
+----
+  buck test //gerrit-acceptance-tests/src/test/java/com/google/gerrit/acceptance/api/group:AddRemoveGroupMembersIT
+  TESTING //gerrit-acceptance-tests/src/test/java/com/google/gerrit/acceptance/api/group:AddRemoveGroupMembersIT
+  PASS  14,9s  8 Passed   0 Failed   com.google.gerrit.acceptance.rest.group.AddRemoveGroupMembersIT
+  TESTS PASSED
+----
+
+An alternative approach is to use Buck's `--filters` (`-f`) option:
+
+----
+  buck test -f 'com.google.gerrit.acceptance.rest.change.SubmitByMergeAlwaysIT'
+  TESTING SELECTED TESTS
+  PASS  14,5s  6 Passed   0 Failed   com.google.gerrit.acceptance.rest.change.SubmitByMergeAlwaysIT
+  TESTS PASSED
+----
+
+When this option is used, the cache is disabled per design and doesn't need to
+be explicitly deleted.
+
+Note that when this option is used, the whole unit test cache is dropped, so
+repeating the
+
+----
+buck test
+----
+
+causes all tests to be executed again.
+
+To run tests without using cached results at all, use the `--no-results-cache`
+option:
+
+----
+buck test --no-results-cache
+----
+
+== Troubleshooting Buck
+
+In some cases problems with Buck itself need to be investigated. See for example
+link:https://gerrit-review.googlesource.com/62411[this attempt to upgrade Buck]
+and link:https://github.com/facebook/buck/pull/227[the fix that was needed] to
+make the update possible.
+
+To build Gerrit with a custom version of Buck, the following steps are necessary:
+
+1. In the Buck git apply any necessary changes from pull requests
+2. Compile Buck with `ant`
+3. In the root of the Gerrit project create a `.nobuckcheck` file to prevent Buck
+from updating itself
+4. Replace the sha1 in Gerrit's `.buckversion` file with the required version from
+the custom Buck build
+5. Build Gerrit as usual
+
+GERRIT
+------
+Part of link:index.html[Gerrit Code Review]
+
+SEARCHBOX
+---------
